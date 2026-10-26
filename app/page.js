@@ -8,8 +8,8 @@ import FileSaver from "file-saver";
 /* ============================================================
    Fungsi Kompresi Gambar di Browser
    - Mengubah gambar ke format JPG
-   - Max lebar 800px (rasio asli dipertahankan)
-   - Kualitas 70%
+   - Max lebar 1200px (rasio asli dipertahankan)
+   - Kualitas 85%
    ============================================================ */
 function compressImage(file, max_width = 1200, quality = 0.85) {
   return new Promise((resolve, reject) => {
@@ -109,7 +109,7 @@ async function buildZipFromItems(items, onProgress) {
 
     // Tambah summary.txt di setiap folder
     folder.file("summary.txt",
-      `Nomor SJ  : ${item.nomor_sj}\nNama Kurir: ${item.nama_kurir}\nDikirim Ke: ${item.dikirim_ke || "-"}\nWaktu     : ${formatWaktu(item.waktu)}\nJumlah Foto: ${item.foto_urls?.length || 0}`
+      `Nomor SJ  : ${item.nomor_sj}\nNama Driver: ${item.nama_kurir}\nDikirim Ke: ${item.dikirim_ke || "-"}\nWaktu     : ${formatWaktu(item.waktu)}\nJumlah Foto: ${item.foto_urls?.length || 0}`
     );
   }
 
@@ -197,7 +197,7 @@ function FormInputKurir({ onSubmit, onReset }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!nomorSJ.trim() || !namaKurir.trim()) {
-      setError("Nomor Surat Jalan dan Nama Kurir wajib diisi.");
+      setError("Nomor Surat Jalan dan Nama Driver wajib diisi.");
       return;
     }
     if (photos.length < 2) {
@@ -240,7 +240,7 @@ function FormInputKurir({ onSubmit, onReset }) {
 
         <div>
           <label htmlFor="namaKurir" className="block text-sm font-semibold text-slate-700 mb-1.5">
-            Nama Kurir <span className="text-red-500">*</span>
+            Nama Driver <span className="text-red-500">*</span>
           </label>
           <input id="namaKurir" type="text" value={namaKurir} onChange={(e) => setNamaKurir(e.target.value)} placeholder="Contoh: Alik / Habib" className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition" />
         </div>
@@ -321,7 +321,7 @@ function FormInputKurir({ onSubmit, onReset }) {
 /* ============================================================
    TAB 2: Cari Data (Kantor / Admin)
    ============================================================ */
-function CariData({ data, onDelete }) {
+function CariData({ data, onDelete, onRefresh }) {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState([]);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -484,7 +484,7 @@ function CariData({ data, onDelete }) {
         <svg className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
-        <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari No. Surat Jalan atau Nama Kurir..." autoComplete="off" className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-base shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition" />
+        <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari Nama Customer/SJ..." autoComplete="off" className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-base shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition" />
       </div>
 
       {/* Filter Bulan */}
@@ -508,6 +508,12 @@ function CariData({ data, onDelete }) {
           <span className="text-sm text-slate-600">Pilih semua ({itemsByMonth.length} dari {data.length})</span>
         </label>
         <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={onRefresh} className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 active:scale-[0.98] transition">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
           {selected.length > 0 && (
             <>
               <button type="button" onClick={() => openDownloadModal("selected")} className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-[0.98] transition">
@@ -822,10 +828,10 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-lg sm:text-xl font-bold text-white leading-tight">
-              Botamp.id - System Bukti Pengiriman Kurir
+              Botamp.id - System Bukti Pengiriman Driver
             </h1>
             <p className="text-xs sm:text-sm text-blue-100">
-              Photo bukti pengiriman
+              Photo Bukti Pengiriman Driver
             </p>
           </div>
         </div>
@@ -835,7 +841,7 @@ export default function Home() {
       <nav className="sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-3xl">
           <button onClick={() => setActiveTab("kurir")} className={`flex-1 px-2 py-3.5 text-sm font-semibold transition ${activeTab === "kurir" ? "border-b-[3px] border-blue-600 text-blue-700" : "border-b-[3px] border-transparent text-slate-500 hover:text-slate-700"}`}>
-            Form Input Kurir
+            Form Input Driver
           </button>
           <button onClick={() => setActiveTab("admin")} className={`flex-1 px-2 py-3.5 text-sm font-semibold transition ${activeTab === "admin" ? "border-b-[3px] border-blue-600 text-blue-700" : "border-b-[3px] border-transparent text-slate-500 hover:text-slate-700"}`}>
             Cari Data (Kantor/Admin)
@@ -875,12 +881,9 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <CariData data={data} onDelete={handleHapus} />
+              <CariData data={data} onDelete={handleHapus} onRefresh={fetchData} />
             )}
-            <button onClick={fetchData} className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
-              Refresh Data
-            </button>
-          </div>
+            </div>
         )}
       </main>
     </div>
