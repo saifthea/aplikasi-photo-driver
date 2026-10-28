@@ -329,6 +329,11 @@ function CariData({ data, onDelete, onRefresh }) {
   const [passwordError, setPasswordError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  // State Lightbox
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState("");
+  const [lightboxAlt, setLightboxAlt] = useState("");
+
   // State Download
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -344,6 +349,21 @@ function CariData({ data, onDelete, onRefresh }) {
     if (showPasswordModal) setQuery("");
   }, [showPasswordModal]);
 
+  // Kunci scroll body + tombol Escape saat lightbox terbuka
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const handleKey = (e) => {
+      if (e.key === "Escape") closeLightbox();
+    };
+    document.addEventListener("keydown", handleKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [lightboxOpen]);
+
   const hasil = data.filter((item) => {
     const q = query.trim().toLowerCase();
     if (!q) return true;
@@ -358,6 +378,18 @@ function CariData({ data, onDelete, onRefresh }) {
 
   const toggleSelectAll = () => {
     setSelected(selected.length === hasil.length ? [] : hasil.map((i) => i.id));
+  };
+
+  const openLightbox = (url, alt) => {
+    setLightboxImage(url);
+    setLightboxAlt(alt);
+    setLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+    setLightboxImage("");
+    setLightboxAlt("");
   };
 
   const openDeleteModal = () => {
@@ -569,7 +601,14 @@ function CariData({ data, onDelete, onRefresh }) {
                 {item.foto_urls && item.foto_urls.length > 0 ? (
                   <div className="grid grid-cols-2 gap-1">
                     {item.foto_urls.map((f, i) => (
-                      <img key={i} src={f} alt={`Bukti ${i + 1} - ${item.nomor_sj}`} className="h-40 w-full object-cover" />
+                      <button key={i} type="button" onClick={() => openLightbox(f, `Bukti ${i + 1} - ${item.nomor_sj}`)} className="group relative overflow-hidden rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <img src={f} alt={`Bukti ${i + 1} - ${item.nomor_sj}`} className="h-40 w-full object-cover transition-transform duration-200 group-hover:scale-105" />
+                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-200 group-hover:bg-black/20">
+                          <svg className="h-6 w-6 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 10l3 3m0 0l-3 3m3-3l-3-3m3 3V7" />
+                          </svg>
+                        </div>
+                      </button>
                     ))}
                   </div>
                 ) : (
@@ -681,6 +720,28 @@ function CariData({ data, onDelete, onRefresh }) {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Lightbox Preview Gambar */}
+      {lightboxOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-3 sm:p-6" onClick={closeLightbox} role="dialog" aria-modal="true" aria-label={lightboxAlt}>
+          {/* Tombol Tutup */}
+          <button type="button" onClick={closeLightbox} className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/25 active:scale-95" aria-label="Tutup pratinjau">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          {/* Gambar besar */}
+          <div className="relative flex max-h-full max-w-full items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <img src={lightboxImage} alt={lightboxAlt} className="max-h-[90vh] max-w-full rounded-lg object-contain shadow-2xl select-none" />
+          </div>
+          {/* Label keterangan */}
+          {lightboxAlt && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-4 py-1.5 text-center text-xs text-white backdrop-blur sm:text-sm">
+              {lightboxAlt}
+            </div>
+          )}
         </div>
       )}
     </div>
