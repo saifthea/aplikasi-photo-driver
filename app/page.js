@@ -203,10 +203,20 @@ function FormInputKurir({ onSubmit, onReset }) {
   // Buka kamera HP
   const openCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false,
-      });
+      let stream;
+      // Coba kamera belakang dulu (environment)
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        });
+      } catch (e) {
+        // Fallback: coba tanpa spesifik facingMode
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
       setCameraStream(stream);
       setShowCamera(true);
       // Tunggu video siap, lalu putar
